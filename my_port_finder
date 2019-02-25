@@ -1,0 +1,95 @@
+#!/usr/bin/python3
+"""
+    Script designed to discover machines. Port is hardcoded in systemd
+    service and it is 2138
+"""
+import socket
+import ipaddress
+import threading
+import argparse
+from queue import Queue
+from contextlib import closing
+from time import sleep
+import netifaces
+
+PAIRS_QUEUE = Queue()
+PASSED_CHECK = []
+EXCLUDES = ["lo", "docker0"]
+
+
+def check_tcp_thread_wrapper():
+    """
+    Wrapper for executing port check
+    """
+    while True:
+        pair = PAIRS_QUEUE.get()
+        if check_socket(pair):
+            PASSED_CHECK.append(pair[0][0])
+        PAIRS_QUEUE.task_done()
+    return False
+
+
+def check_socket(data):
+    """
+    Execution of port check
+    """
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.settimeout(5)
+        if sock.connect_ex(data[0]) == 0:
+            received = str(sock.recv(1024), "utf-8")
+            if data[1] in received:
+                return True
+        return False
+
+
+def read_queue_size():
+    """
+    Helper for debuging
+    """
+    while True:
+        print(PAIRS_QUEUE.qsize())
+        sleep(5)
+    return False
+
+
+if __name__ == "__main__":
+    PARSER = argparse.ArgumentParser(description="Utility for finding open \
+        port with services list")
+    PARSER.add_argument('-p', '--port', type=int, default=2138, help="Port to \
+        scan for. Default 2138")
+    PARSER.add_argument('-s', '--service', type=str, default='default', help="Service \
+        string to look for. Default is default")
+    PARSER.add_argument('-m', '--mine', action="store_true", default=False, help="Show only \
+        my address if it fits for service")
+    ARGS = PARSER.parse_args()
+    INTERFACES = netifaces.interfaces()
+    ADDRESSES = []
+    for i in EXCLUDES:
+        if i in INTERFACES:
+            INTERFACES.remove(i)
+    INTER_INETS = {}
+    for i in INTERFACES:
+        if netifaces.AF_INET in netifaces.ifaddresses(i).keys():
+            INTER_INETS[i] = netifaces.ifaddresses(i)[netifaces.AF_INET][0]
+    for i in INTER_INETS.keys():
+        interface = INTER_INETS[i]
+        network = ipaddress.IPv4Network("{}/{}".format(interface["addr"],
+                                                       interface["netmask"]),
+                                        strict=False)
+        ADDRESSES = ADDRESSES + [str(ip) for ip in network]
+    if ARGS.mine:
+        if check_socket(((str(INTER_INETS[i]["addr"]), ARGS.port), ARGS.service)):
+            PASSED_CHECK.append(str(INTER_INETS[i]["addr"]))
+    else:
+        for a in ADDRESSES:
+            PAIRS_QUEUE.put(((a, ARGS.port), ARGS.service))
+        for thread in range(0, 255):
+            t = threading.Thread(target=check_tcp_thread_wrapper)
+            t.daemon = True
+            t.start()
+        PAIRS_QUEUE.join()
+        if len(PASSED_CHECK) > 0:
+            for i in INTER_INETS.keys():
+                if str(INTER_INETS[i]["addr"]) in PASSED_CHECK:
+                    PASSED_CHECK.remove(str(INTER_INETS[i]["addr"]))
+    print(" ".join(PASSED_CHECK))

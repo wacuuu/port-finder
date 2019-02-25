@@ -1,0 +1,11 @@
+[Unit]
+Description=Open port for service discovery
+After=systemd-user-sessions.service
+ConditionFileNotEmpty=/etc/port-listener.json
+[Service]
+Restart=always
+RestartSec=3
+Type=simple
+ExecStart=/var/opt/port-listener.py
+[Install]
+WantedBy=multi-user.target
