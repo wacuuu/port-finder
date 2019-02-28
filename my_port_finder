@@ -88,7 +88,7 @@ if __name__ == "__main__":
             t.daemon = True
             t.start()
         PAIRS_QUEUE.join()
-        if len(PASSED_CHECK) > 0:
+        if PASSED_CHECK:
             for i in INTER_INETS.keys():
                 if str(INTER_INETS[i]["addr"]) in PASSED_CHECK:
                     PASSED_CHECK.remove(str(INTER_INETS[i]["addr"]))
