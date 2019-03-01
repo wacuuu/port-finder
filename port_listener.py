@@ -1,25 +1,24 @@
 #!/usr/bin/python3
 """
-    Point of this script is to spawn tcp servers based on
+    Point of this script is to spawn TCP servers based on
     configuration provided in proper file in etc.
 """
 
 import socketserver
 import json
 import threading
+import argparse
 
-# CONFIG_PATH = "./port-listener.json"
-CONFIG_PATH = "/etc/port-listener.json"
 IP = "0.0.0.0"
 CONFIG = {}
 
 
 def start_listener(listener_data):
     """
-    Wrapper function to start tcp server.
+    Wrapper function to start TCP server.
 
     Args:
-    listener_data (tuple): data for tcp serever to start
+    listener_data (tuple): data for TCP server to start
     """
     with socketserver.TCPServer(listener_data, MyTCPHandler) as server:
         server.timeout = 3
@@ -43,6 +42,12 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
 
 if __name__ == "__main__":
+    PARSER = argparse.ArgumentParser()
+    PARSER.add_argument('-c', '--config',
+                        help="Config file for service",
+                        default="/etc/port-listener.json", type=str)
+    ARGS = PARSER.parse_args()
+    CONFIG_PATH = ARGS.config
     with open(CONFIG_PATH, 'r') as infile:
         CONFIG = json.loads(infile.read())
     SERVICES = [(IP, int(i)) for i in CONFIG.keys()]

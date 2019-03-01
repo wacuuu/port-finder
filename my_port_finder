@@ -8,7 +8,6 @@ import ipaddress
 import threading
 import argparse
 from queue import Queue
-from contextlib import closing
 from time import sleep
 import netifaces
 
@@ -33,13 +32,15 @@ def check_socket(data):
     """
     Execution of port check
     """
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-        sock.settimeout(5)
-        if sock.connect_ex(data[0]) == 0:
-            received = str(sock.recv(1024), "utf-8")
-            if data[1] in received:
-                return True
-        return False
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(5)
+    if sock.connect_ex(data[0]) == 0:
+        received = str(sock.recv(1024), "utf-8")
+        if data[1] in received:
+            sock.close()
+            return True
+    sock.close()
+    return False
 
 
 def read_queue_size():
