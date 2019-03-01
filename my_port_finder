@@ -72,7 +72,7 @@ if __name__ == "__main__":
     for i in INTERFACES:
         if netifaces.AF_INET in netifaces.ifaddresses(i).keys():
             INTER_INETS[i] = netifaces.ifaddresses(i)[netifaces.AF_INET][0]
-    for i in INTER_INETS.keys():
+    for i in INTER_INETS:
         interface = INTER_INETS[i]
         network = ipaddress.IPv4Network("{}/{}".format(interface["addr"],
                                                        interface["netmask"]),
@@ -90,7 +90,7 @@ if __name__ == "__main__":
             t.start()
         PAIRS_QUEUE.join()
         if PASSED_CHECK:
-            for i in INTER_INETS.keys():
+            for i in INTER_INETS:
                 if str(INTER_INETS[i]["addr"]) in PASSED_CHECK:
                     PASSED_CHECK.remove(str(INTER_INETS[i]["addr"]))
     print(" ".join(PASSED_CHECK))

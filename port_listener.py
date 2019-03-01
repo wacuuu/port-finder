@@ -20,9 +20,9 @@ def start_listener(listener_data):
     Args:
     listener_data (tuple): data for TCP server to start
     """
-    with socketserver.TCPServer(listener_data, MyTCPHandler) as server:
-        server.timeout = 3
-        server.serve_forever()
+    server = socketserver.TCPServer(listener_data, MyTCPHandler)
+    server.timeout = 3
+    server.serve_forever()
 
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
