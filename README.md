@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/wacuuu/port-finder.svg?branch=master)](https://travis-ci.com/wacuuu/port-finder)
 # port-finder
 Small utility for service discovery in small networks.
 ## How it works
