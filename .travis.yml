@@ -1,0 +1,6 @@
+language: python
+python: 3.6
+install: pip3 install pylint
+script:
+  - python3 -m pylint my_port_finder
+  - python3 -m pylint port_listener.py
