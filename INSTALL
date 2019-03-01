@@ -2,7 +2,7 @@
 set -x
 cp -f my_port_finder /usr/bin/
 cp -f port-listener.json /etc/
-cp -f port-listener.py /var/opt/
+cp -f port_listener.py /var/opt/
 cp -f port-listener.service /etc/systemd/system/
 systemctl enable port-listener
 systemctl start port-listener

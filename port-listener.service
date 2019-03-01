@@ -1,7 +1,7 @@
 [Unit]
 Description=Open port for service discovery
 After=systemd-user-sessions.service
-ConditionFileNotEmpty=/etc/port-listener.json
+ConditionFileNotEmpty=/etc/port_listener.json
 [Service]
 Restart=always
 RestartSec=3
